@@ -64,3 +64,35 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { userName, email, mobile, age, gender, dob, password } = req.body;
+
+    // Check if the user exists
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update the user details if provided
+    if (userName) user.userName = userName;
+    if (email) user.email = email;
+    if (mobile) user.mobile = mobile;
+    if (age) user.age = age;
+    if (gender) user.gender = gender;
+    if (dob) user.dob = dob;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+
+    res.status(200).json({ message: "User updated successfully", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
